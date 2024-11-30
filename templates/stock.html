@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>STOCK DETAILS</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="stylesheet" href="path/to/your/charts.min.css">
+        <script type="text/javascript">
+                fetch('static/js/file.json')
+                    .then(response => response.json())
+                    .then(data => console.log(data)
+                    .catch(error => console.error('Error fetching JSON:', error));
+        </script>
+        
+    </head>
+    <body>
+        <div class="total">
+            <div class="tot_search">
+                <form action="/company" method="post">
+                    <label for="fname" class="yt">ENTER THE COMPANY'S TICKER NAME</label><br>
+                    <input type="text" id="fname" name="fname" class="search"><br>
+                    <input type="submit" value="Submit" class="submit">
+                </form>
+            </div>
+
+            {% if fname %}
+                <h1>{{fname}}</h1>
+                {% if full_graph_data %}
+                    <div id="controls">
+                        <button class="btn btn-primary" onclick="updateGraph('1M')">1 Month</button>
+                        <button class="btn btn-primary" onclick="updateGraph('3M')">3 Months</button>
+                        <button class="btn btn-primary" onclick="updateGraph('1Y')">1 Year</button>
+                        <button class="btn btn-primary" onclick="updateGraph('3Y')">3 Years</button>
+                        <button class="btn btn-primary" onclick="updateGraph('ALL')">All</button>
+                    </div>
+                    <div id="chart"></div>
+                    <script>
+                        var fullData = JSON.parse('{{ full_graph_data | safe }}');
+                        var currentData = { x: fullData.date, y: fullData.close };
+
+                        function filterData(period) {
+                        const endDate = new Date();
+                        let startDate = new Date();
+
+                        switch (period) {
+                        case '1M': startDate.setMonth(endDate.getMonth() - 1); break;
+                        case '3M': startDate.setMonth(endDate.getMonth() - 3); break;
+                        case '1Y': startDate.setFullYear(endDate.getFullYear() - 1); break;
+                        case '3Y': startDate.setFullYear(endDate.getFullYear() - 3); break;
+                        case 'ALL': startDate = new Date(fullData.date[0]); break;
+                        }
+
+                        const filteredData = {
+                            x: [],
+                            y: []
+                        };
+                        for (let i = 0; i < fullData.date.length; i++) {
+                            const date = new Date(fullData.date[i]);
+                            if (date >= startDate && date <= endDate) {
+                                filteredData.x.push(fullData.date[i]);
+                                filteredData.y.push(fullData.close[i]);
+                            }
+                        }
+                        return filteredData;
+                        }
+
+                        function updateGraph(period) {
+                            const filteredData = filterData(period);
+
+                            const trace = {
+                                x: filteredData.x,
+                                y: filteredData.y,
+                                type: 'scatter',
+                                mode: 'lines',
+                                line: { color: '#0066cc' }
+                            };
+
+                            const layout = {
+                                title: `Stock Price (${period})`,
+                                xaxis: { title: 'Date' },
+                                yaxis: { title: 'Close Price' }
+                            };
+
+                        Plotly.newPlot('chart', [trace], layout);
+                        }
+
+                        updateGraph('ALL');
+                    </script>
+                {% endif %}
+                <div class="info">
+                    <h1>COMPANY INFORMATION</h1>
+                    <div class="details">
+                        {% for i in k[:16] %}
+                            <h1>{{i[0].upper()}}:{{i[1]}}</h1>  
+                        {% endfor %}
+                    </div>
+                    <h1>FUNDAMENTAL INFORMATION</h1>
+                    <div class="details">
+                        {% for i in k[16:32] %}
+                            <h1>{{i[0].upper()}}:{{i[1]}}</h1>  
+                        {% endfor %}
+                    </div>
+                    <h1>VOLUME INFORMATION</h1>
+                    <div class="details">
+                        {% for i in k[33:47] %}
+                            <h1>{{i[0].upper()}}:{{i[1]}}</h1>  
+                        {% endfor %}
+                    </div>
+                    <h1>SHARE INFORMATION</h1>
+                    <div class="details">
+                        {% for i in k[47:55] %}
+                            <h1>{{i[0].upper()}}:{{i[1]}}</h1>  
+                        {% endfor %}
+                    </div>
+                    <h1>BOOK INFORMATION</h1>
+                    <div class="details">
+                        {% for i in k[55:67] %}
+                            <h1>{{i[0].upper()}}:{{i[1]}}</h1>  
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </body>
+</html>

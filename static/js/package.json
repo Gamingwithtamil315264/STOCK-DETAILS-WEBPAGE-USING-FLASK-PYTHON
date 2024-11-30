@@ -1,0 +1,6 @@
+{
+  "name": "ag-charts-example",
+  "dependencies": {
+    "ag-charts-community": "^9.2.0-beta.20240319.1659"
+  }
+}
